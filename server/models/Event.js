@@ -1,21 +1,14 @@
 const mongoose = require('mongoose');
-const EventSchema = new mongoose.Schema({
-    name: { 
-        type: String, 
-        required: true 
-    },
-    profiles: [{ 
-        type: mongoose.Schema.Types.ObjectId, 
-        ref: 'Profile' 
-    }],
-    startTime: {
-         type: Date, required: true 
-        },
-    endTime: { type: Date, required: true },
-    creatorTimezone: { type: String, required: true },
+const eventSchema = new mongoose.Schema({
+    title: String,
+    profiles: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    timezone: String, 
+    startDateTime: Date,
+    endDateTime: Date,
     logs: [{
-        updatedAt: { type: Date, default: Date.now },
-        diff: Object
+        previousValue: Object,
+        updatedValue: Object,
+        updatedAt: { type: Date, default: Date.now }
     }]
-}, { timestamps: true });
-module.exports = mongoose.model('Event', EventSchema);
+}, { timestamps: true }); 
+module.exports = mongoose.model('Event', eventSchema);
