@@ -16,7 +16,7 @@ const ProfileSwitcher = () => {
 
         try {
             // API call to create user with just a name
-            const res = await axios.post('http://localhost:5000/api/profiles', {
+            const res = await axios.post('https://event-management-system-rsvr.onrender.com/api/profiles', {
                 name: newName,
                 timezone: 'UTC' // Defaulting as per requirements
             });

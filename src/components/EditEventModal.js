@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import axios from 'axios';
 import { setEvents } from '../store/eventSlice';
-import Dropdown from './Dropdown';
+import EventDropdown from './EventDropdown';
 import ListDropdown from './ListDropdown';
 
 const EditEventModal = ({ event, onClose }) => {
@@ -19,14 +19,14 @@ const EditEventModal = ({ event, onClose }) => {
     const handleUpdate = async (e) => {
         e.preventDefault();
         try {
-            await axios.put(`http://localhost:5000/api/events/events/${event._id}`, {
+            await axios.put(`https://event-management-system-rsvr.onrender.com/api/events/events/${event._id}`, {
                 profiles: formData.selectedProfiles,
                 startDateTime: new Date(formData.start).toISOString(),
                 endDateTime: new Date(formData.end).toISOString(),
                 timezone: formData.timezone
             });
 
-            const res = await axios.get('http://localhost:5000/api/events');
+            const res = await axios.get('https://event-management-system-rsvr.onrender.com/api/events');
             dispatch(setEvents(res.data));
             onClose();
         } catch (err) {
@@ -52,7 +52,7 @@ const EditEventModal = ({ event, onClose }) => {
                 <form onSubmit={handleUpdate}>
                     <div className="form-group">
                         <label className="form-label">Profiles</label>
-                        <Dropdown
+                        <EventDropdown
                             placeholder={`${formData.selectedProfiles.length} profiles selected`}
                             onChange={toggleProfile}
                             options={profiles.map(p => ({

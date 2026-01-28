@@ -3,25 +3,25 @@ const router = express.Router();
 const Event = require('../models/Event');
 const mongoose = require('mongoose');
 
+const isTimeSubstantiallyDifferent = (date1, date2) => {
+    if (!date1 || !date2) return false;
+    const d1 = new Date(date1);
+    const d2 = new Date(date2);
+
+    return d1.getFullYear() !== d2.getFullYear() ||
+        d1.getMonth() !== d2.getMonth() ||
+        d1.getDate() !== d2.getDate() ||
+        d1.getHours() !== d2.getHours() ||
+        d1.getMinutes() !== d2.getMinutes();
+};
+
 router.post('/', async (req, res) => {
     const { title, profiles, timezone, startDateTime, endDateTime } = req.body;
-
     try {
         if (new Date(endDateTime) < new Date(startDateTime)) {
-            return res.status(400).json({
-                error: "End date/time cannot be before start date/time"
-            });
+            return res.status(400).json({ error: "End date/time cannot be before start date/time" });
         }
-
-        const newEvent = new Event({
-            title,
-            profiles, 
-            timezone,
-            startDateTime,
-            endDateTime,
-            logs: [] 
-        });
-
+        const newEvent = new Event({ title, profiles, timezone, startDateTime, endDateTime, logs: [] });
         const savedEvent = await newEvent.save();
         res.status(201).json(savedEvent);
     } catch (err) {
@@ -43,24 +43,33 @@ router.put('/events/:id', async (req, res) => {
         const newProfileIds = [...profiles].sort();
 
         if (JSON.stringify(oldProfileIds) !== JSON.stringify(newProfileIds)) {
-            const updatedProfiles = await mongoose.model('User').find({ _id: { $in: profiles } });
+            const updatedProfiles = await mongoose.model('Profile').find({ _id: { $in: profiles } });
             const names = updatedProfiles.map(p => p.name).join(', ');
             changes.push(`Profile changed to: ${names}`);
         }
-        const isStartChanged = startDateTime && startDateTime !== existingEvent.startDateTime.toISOString();
-        const isEndChanged = endDateTime && endDateTime !== existingEvent.endDateTime.toISOString();
+
+        const isStartChanged = startDateTime && isTimeSubstantiallyDifferent(startDateTime, existingEvent.startDateTime);
+        const isEndChanged = endDateTime && isTimeSubstantiallyDifferent(endDateTime, existingEvent.endDateTime);
         const isTzChanged = timezone && timezone !== existingEvent.timezone;
 
         if (isStartChanged || isEndChanged || isTzChanged) {
             changes.push("Date/Time updated");
         }
+        if (changes.length === 0) {
+            const updatedEvent = await Event.findByIdAndUpdate(
+                eventId,
+                { $set: { title, profiles, timezone, startDateTime, endDateTime } },
+                { new: true }
+            );
+            return res.json(updatedEvent);
+        }
 
-        const finalDescription = changes.length > 0 ? changes.join(" , ") : "Event details updated";
+        const finalDescription = changes.join(" , ");
 
         const logEntry = {
             previousValue: {
                 title: existingEvent.title,
-                profiles: existingEvent.profiles,
+                profiles: existingEvent.profiles.map(p => p._id),
                 timezone: existingEvent.timezone,
                 startDateTime: existingEvent.startDateTime,
                 endDateTime: existingEvent.endDateTime
@@ -87,7 +96,7 @@ router.put('/events/:id', async (req, res) => {
 
 router.get('/', async (req, res) => {
     try {
-        const events = await Event.find();
+        const events = await Event.find().sort({ createdAt: -1 });
         res.json(events);
     } catch (err) {
         res.status(500).json({ error: err.message });

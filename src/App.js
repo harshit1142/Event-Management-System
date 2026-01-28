@@ -15,7 +15,7 @@ const App = () => {
   const handleAddProfile = async (profileName) => {
     if (!profileName.trim()) return;
     try {
-      const res = await axios.post('http://localhost:5000/api/profiles', {
+      const res = await axios.post('https://event-management-system-rsvr.onrender.com/api/profiles', {
         name: profileName,
         timezone: 'UTC'
       });
@@ -28,8 +28,8 @@ const App = () => {
 
   useEffect(() => {
     const load = async () => {
-      const pRes = await axios.get('http://localhost:5000/api/profiles');
-      const eRes = await axios.get('http://localhost:5000/api/events');
+      const pRes = await axios.get('https://event-management-system-rsvr.onrender.com/api/profiles');
+      const eRes = await axios.get('https://event-management-system-rsvr.onrender.com/api/events');
       dispatch(setProfiles(pRes.data));
       dispatch(setEvents(eRes.data));
       if (pRes.data.length > 0) dispatch(setActiveProfile(pRes.data[0]));
@@ -67,7 +67,7 @@ const App = () => {
         </aside>
         <main>
           <div className="card" style={{ minHeight: '600px' }}>
-            
+
             <EventList />
           </div>
         </main>

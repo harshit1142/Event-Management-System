@@ -20,15 +20,15 @@ const CreateEventForm = () => {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = React.useRef(null);
     useEffect(() => {
-            const handleClickOutside = (event) => {
-                if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-                    setIsOpen(false);
-                }
-            };
-    
-            document.addEventListener('mousedown', handleClickOutside);
-            return () => document.removeEventListener('mousedown', handleClickOutside);
-        }, []);
+        const handleClickOutside = (event) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setIsOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
 
     const toggleProfile = (id) => {
@@ -50,14 +50,14 @@ const CreateEventForm = () => {
         }
 
         try {
-            await axios.post('http://localhost:5000/api/events', {
+            await axios.post('https://event-management-system-rsvr.onrender.com/api/events', {
                 profiles: formData.selectedProfiles,
                 startDateTime: new Date(formData.start).toISOString(),
                 endDateTime: new Date(formData.end).toISOString(),
                 timezone: formData.timezone
             });
 
-            const res = await axios.get('http://localhost:5000/api/events');
+            const res = await axios.get('https://event-management-system-rsvr.onrender.com/api/events');
             dispatch(setEvents(res.data));
 
             alert("Event Created!");
@@ -73,7 +73,7 @@ const CreateEventForm = () => {
 
     return (
         <form onSubmit={handleCreate} ref={dropdownRef}>
-           
+
 
             <div className="form-group">
                 <label className="form-label">Profiles</label>
@@ -83,7 +83,7 @@ const CreateEventForm = () => {
                     options={profiles.map(p => ({
                         value: p._id,
                         label: p.name,
-                        isSelected: formData.selectedProfiles.includes(p._id) 
+                        isSelected: formData.selectedProfiles.includes(p._id)
                     }))}
                 />
             </div>
