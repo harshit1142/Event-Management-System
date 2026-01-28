@@ -1,14 +1,44 @@
 const mongoose = require('mongoose');
+
 const eventSchema = new mongoose.Schema({
-    title: String,
-    profiles: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-    timezone: String, 
-    startDateTime: Date,
-    endDateTime: Date,
+    title: {
+        type: String,
+        trim: true
+    },
+    profiles: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    }],
+    timezone: {
+        type: String,
+        required: true
+    },
+    startDateTime: {
+        type: Date,
+        required: true
+    },
+    endDateTime: {
+        type: Date,
+        required: true
+    },
     logs: [{
-        previousValue: Object,
-        updatedValue: Object,
-        updatedAt: { type: Date, default: Date.now }
+        previousValue: {
+            type: Object
+        },
+        updatedValue: {
+            type: Object
+        },
+        changeDescription: {
+            type: String
+        },
+        updatedAt: {
+            type: Date,
+            default: Date.now
+        }
     }]
-}, { timestamps: true }); 
+}, {
+    timestamps: true
+});
+
 module.exports = mongoose.model('Event', eventSchema);

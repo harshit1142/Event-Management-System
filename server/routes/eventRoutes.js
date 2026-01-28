@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Event = require('../models/Event');
-
+const mongoose = require('mongoose');
 
 router.post('/', async (req, res) => {
     const { title, profiles, timezone, startDateTime, endDateTime } = req.body;
@@ -34,17 +34,28 @@ router.put('/events/:id', async (req, res) => {
     const eventId = req.params.id;
 
     try {
+        const existingEvent = await Event.findById(eventId).populate('profiles');
+        if (!existingEvent) return res.status(404).json({ error: "Event not found" });
 
-        const existingEvent = await Event.findById(eventId);
-        if (!existingEvent) {
-            return res.status(404).json({ error: "Event not found" });
-        }
-        const finalStart = startDateTime || existingEvent.startDateTime;
-        const finalEnd = endDateTime || existingEvent.endDateTime;
+        let changes = [];
 
-        if (new Date(finalEnd) < new Date(finalStart)) {
-            return res.status(400).json({ error: "End date/time cannot be before start date/time" });
+        const oldProfileIds = existingEvent.profiles.map(p => p._id.toString()).sort();
+        const newProfileIds = [...profiles].sort();
+
+        if (JSON.stringify(oldProfileIds) !== JSON.stringify(newProfileIds)) {
+            const updatedProfiles = await mongoose.model('User').find({ _id: { $in: profiles } });
+            const names = updatedProfiles.map(p => p.name).join(', ');
+            changes.push(`Profile changed to: ${names}`);
         }
+        const isStartChanged = startDateTime && startDateTime !== existingEvent.startDateTime.toISOString();
+        const isEndChanged = endDateTime && endDateTime !== existingEvent.endDateTime.toISOString();
+        const isTzChanged = timezone && timezone !== existingEvent.timezone;
+
+        if (isStartChanged || isEndChanged || isTzChanged) {
+            changes.push("Date/Time updated");
+        }
+
+        const finalDescription = changes.length > 0 ? changes.join(" , ") : "Event details updated";
 
         const logEntry = {
             previousValue: {
@@ -55,6 +66,7 @@ router.put('/events/:id', async (req, res) => {
                 endDateTime: existingEvent.endDateTime
             },
             updatedValue: req.body,
+            changeDescription: finalDescription,
             updatedAt: new Date()
         };
 
@@ -64,7 +76,7 @@ router.put('/events/:id', async (req, res) => {
                 $set: { title, profiles, timezone, startDateTime, endDateTime },
                 $push: { logs: logEntry }
             },
-            { new: true, runValidators: true }
+            { new: true }
         );
 
         res.json(updatedEvent);

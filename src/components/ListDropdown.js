@@ -7,11 +7,6 @@ const Dropdown = ({ options, placeholder, value, onChange, label, onAddClick }) 
     const dropdownRef = useRef(null);
 
     const selectedLabel = options.find(opt => opt.value === value)?.label || placeholder;
-    const handleSelect = (optionValue) => {
-        onChange(optionValue);
-        if (value) setIsOpen(false);
-    };
-
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -39,28 +34,20 @@ const Dropdown = ({ options, placeholder, value, onChange, label, onAddClick }) 
 
             {isOpen && (
                 <div className="dropdown-menu">
-                    {options.map((opt) => (
-                        <div
-                            key={opt.value}
-                            className={`option ${opt.isSelected ? 'selected' : ''}`}
-                            onClick={() => handleSelect(opt.value)}
+                    {options.map(option => (
+                        <button
+                            key={option.value}
+                            type="button"
+                            className={`dropdown-item ${value === option.value ? 'selected' : ''}`}
+                            onClick={() => {
+                                onChange(option.value);
+                                setIsOpen(false);
+                            }}
                         >
-                            {opt.label}
-                            {opt.isSelected && <span className="check">✓</span>}
-                        </div>
+                            {option.label}
+                        </button>
                     ))}
-
-                    <>
-                        <div className="dropdown-divider"></div>
-
-                        <div className='dropdown-add-profile'>
-                            <input type="text" placeholder="Add User" value={profileInput} onChange={(e) => setProfileInput(e.target.value)} />
-                            <button type="button" className="dropdown-add-btn" onClick={() => { onAddClick(profileInput); setProfileInput(''); }}>
-                                Add
-                            </button>
-                        </div>
-                    </>
-
+                    
                 </div>
             )}
         </div>

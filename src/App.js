@@ -67,23 +67,7 @@ const App = () => {
         </aside>
         <main>
           <div className="card" style={{ minHeight: '600px' }}>
-            <div style={{ marginBottom: '24px' }}>
-              <h2>Events</h2>
-              <div className="events-header-controls">
-                <span className="events-header-label">View in Timezone</span>
-                <Dropdown
-                  value={activeProfile?.timezone || 'UTC'}
-                  onChange={(value) => { }}
-                  options={[
-                    { value: 'UTC', label: 'UTC' },
-                    { value: 'ET', label: 'Eastern Time (ET)' },
-                    { value: 'CT', label: 'Central Time (CT)' },
-                    { value: 'MT', label: 'Mountain Time (MT)' },
-                    { value: 'PT', label: 'Pacific Time (PT)' }
-                  ]}
-                />
-              </div>
-            </div>
+            
             <EventList />
           </div>
         </main>

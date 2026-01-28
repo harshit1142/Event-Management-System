@@ -4,6 +4,7 @@ import axios from 'axios';
 import { setEvents } from '../store/eventSlice';
 import Dropdown from './EventDropdown';
 import '../styles/Dropdown.css';
+import ListDropdown from './ListDropdown';
 
 const CreateEventForm = () => {
     const dispatch = useDispatch();
@@ -31,7 +32,6 @@ const CreateEventForm = () => {
 
 
     const toggleProfile = (id) => {
-        // Prevent adding empty values if the dropdown sends them
         if (!id) return;
 
         const updated = formData.selectedProfiles.includes(id)
@@ -44,7 +44,6 @@ const CreateEventForm = () => {
     const handleCreate = async (e) => {
         e.preventDefault();
 
-        // Validation: Ensure at least one profile is selected
         if (formData.selectedProfiles.length === 0) {
             alert("Please select at least one profile");
             return;
@@ -52,7 +51,7 @@ const CreateEventForm = () => {
 
         try {
             await axios.post('http://localhost:5000/api/events', {
-                profiles: formData.selectedProfiles, // This is now an array of IDs
+                profiles: formData.selectedProfiles,
                 startDateTime: new Date(formData.start).toISOString(),
                 endDateTime: new Date(formData.end).toISOString(),
                 timezone: formData.timezone
@@ -63,14 +62,11 @@ const CreateEventForm = () => {
 
             alert("Event Created!");
 
-            // Reset form
             setFormData({ title: 'New Event', selectedProfiles: [], start: '', end: '', timezone: 'UTC' });
         } catch (err) {
             alert("Error: " + (err.response?.data?.error || err.message));
         }
     };
-
-    // Calculate placeholder for profiles dropdown
     const profilePlaceholder = formData.selectedProfiles.length > 0
         ? `${formData.selectedProfiles.length} profiles selected`
         : "Select profiles...";
@@ -83,26 +79,27 @@ const CreateEventForm = () => {
                 <label className="form-label">Profiles</label>
                 <Dropdown
                     placeholder={profilePlaceholder}
-                    // We don't pass a single 'value' because it's multi-select
                     onChange={toggleProfile}
                     options={profiles.map(p => ({
                         value: p._id,
                         label: p.name,
-                        isSelected: formData.selectedProfiles.includes(p._id) // Custom prop for UI
+                        isSelected: formData.selectedProfiles.includes(p._id) 
                     }))}
                 />
             </div>
 
             <div className="form-group">
                 <label className="form-label">Timezone</label>
-                <Dropdown
+                <ListDropdown
                     value={formData.timezone}
                     onChange={(value) => setFormData({ ...formData, timezone: value })}
                     options={[
                         { value: 'UTC', label: 'UTC' },
-                        { value: 'EST', label: 'Eastern Time (ET)' },
-                        { value: 'IST', label: 'India Standard Time (IST)' },
-                        { value: 'PST', label: 'Pacific Time (PT)' }
+                        { value: 'America/New_York', label: 'Eastern Time (ET)' },
+                        { value: 'America/Chicago', label: 'Central Time (CT)' },
+                        { value: 'America/Denver', label: 'Mountain Time (MT)' },
+                        { value: 'America/Los_Angeles', label: 'Pacific Time (PT)' },
+                        { value: 'Asia/Kolkata', label: 'India (IST)' }
                     ]}
                 />
             </div>

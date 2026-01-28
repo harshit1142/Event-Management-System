@@ -1,26 +1,41 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
 import dayjs from 'dayjs';
+import { formatTime } from '../utils/dateUtils';
 
 const LogsModal = ({ logs, onClose }) => {
-    const activeProfile = useSelector(state => state.events.activeProfile);
+    console.log(logs);
+    
+    const activeProfile = useSelector((state) => state.events.activeProfile);
+    const userTz = activeProfile?.timezone || 'UTC';
 
     return (
         <div className="modal-overlay" onClick={onClose}>
-            <div className="modal-content" onClick={e => e.stopPropagation()}>
-                <h3>Event Update History</h3>
-                <hr />
-                <div style={{ margin: '20px 0' }}>
-                    {logs.length === 0 ? <p style={{ textAlign: 'center', color: '#999' }}>No update history yet</p> :
-                        logs.map((log, i) => (
-                            <div key={i} style={{ marginBottom: '15px', padding: '10px', background: '#f8f8f8', borderRadius: '8px' }}>
-                                <small>{dayjs(log.updatedAt).tz(activeProfile.timezone).format('DD MMM YYYY, hh:mm A')}</small>
-                                <p style={{ margin: '5px 0', fontSize: '13px' }}>Event values were updated.</p>
-                            </div>
-                        ))
-                    }
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                <div className="modal-header">
+                    <h3>Event Update History</h3>
+                    <button className="close-x" onClick={onClose}>&times;</button>
                 </div>
-                <button onClick={onClose} className="btn-submit">Close</button>
+
+                <div className="modal-body">
+                    {logs.length === 0 ? (
+                        <p className="empty-text">No update history yet</p>
+                    ) : (
+                        <div className="logs-timeline">
+                            {/* Show logs from newest to oldest */}
+                            {[...logs].reverse().map((log, index) => (
+                                <div key={index} className="log-card">
+                                    <div className="log-timestamp">
+                                        {formatTime(log.updatedAt, userTz)}
+                                    </div>
+                                    <div className="log-description">
+                                        <p><strong>{log.changeDescription}</strong></p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );

@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const Profile = require('../models/Profile');
+const mongoose = require('mongoose');
 
-// Create a profile
 router.post('/', async (req, res) => {
     try {
         const { name } = req.body;
@@ -20,7 +20,6 @@ router.post('/', async (req, res) => {
     }
 });
 
-// Get all profiles
 router.get('/', async (req, res) => {
     try {
         const profiles = await Profile.find();
