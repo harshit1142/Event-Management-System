@@ -46,6 +46,15 @@ router.put('/events/:id', async (req, res) => {
     }
 });
 
+router.get('/', async (req, res) => {
+    try {
+        const events = await Event.find();
+        res.json(events);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 router.get('/events/profile/:profileId', async (req, res) => {
     try {
         const events = await Event.find({ profiles: req.params.profileId });

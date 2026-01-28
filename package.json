@@ -8,7 +8,9 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^13.5.0",
-    "axios": "^1.13.3",
+    "axios": "^1.13.4",
+    "dayjs": "^1.11.19",
+    "lucide-react": "^0.563.0",
     "luxon": "^3.7.2",
     "react": "^19.2.4",
     "react-datepicker": "^9.1.0",
@@ -40,5 +42,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "ajv": "^7.2.4"
   }
 }
