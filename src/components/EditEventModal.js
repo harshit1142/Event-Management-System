@@ -8,12 +8,19 @@ import ListDropdown from './ListDropdown';
 const EditEventModal = ({ event, onClose }) => {
     const dispatch = useDispatch();
     const { profiles } = useSelector(state => state.events);
+    const formatForPicker = (dateString) => {
+        const date = new Date(dateString);
+        const offset = date.getTimezoneOffset() * 60000; // offset in milliseconds
+        const localISOTime = new Date(date.getTime() - offset).toISOString().slice(0, 16);
+        return localISOTime;
+    };
 
     const [formData, setFormData] = useState({
         selectedProfiles: event.profiles,
-        start: new Date(event.startDateTime).toISOString().slice(0, 16),
-        end: new Date(event.endDateTime).toISOString().slice(0, 16),
-        timezone: event.timezone
+        timezone: event.timezone,
+        title: event.title,
+        start: formatForPicker(event.startDateTime),
+        end: formatForPicker(event.endDateTime),
     });
 
     const handleUpdate = async (e) => {
