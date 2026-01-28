@@ -2,6 +2,33 @@ const express = require('express');
 const router = express.Router();
 const Event = require('../models/Event');
 
+
+router.post('/', async (req, res) => {
+    const { title, profiles, timezone, startDateTime, endDateTime } = req.body;
+
+    try {
+        if (new Date(endDateTime) < new Date(startDateTime)) {
+            return res.status(400).json({
+                error: "End date/time cannot be before start date/time"
+            });
+        }
+
+        const newEvent = new Event({
+            title,
+            profiles, 
+            timezone,
+            startDateTime,
+            endDateTime,
+            logs: [] 
+        });
+
+        const savedEvent = await newEvent.save();
+        res.status(201).json(savedEvent);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 router.put('/events/:id', async (req, res) => {
     const { title, profiles, timezone, startDateTime, endDateTime } = req.body;
     const eventId = req.params.id;

@@ -1,79 +1,96 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import axios from 'axios';
 import { setEvents } from '../store/eventSlice';
-import Dropdown from './Dropdown';
+import Dropdown from './EventDropdown';
+import '../styles/Dropdown.css';
 
 const CreateEventForm = () => {
     const dispatch = useDispatch();
-    const profiles = useSelector(state => state.events.profiles);
-    const [formData, setFormData] = useState({ title: '', selectedProfiles: [], start: '', end: '', timezone: 'UTC' });
+    const { profiles } = useSelector(state => state.events);
+
+    const [formData, setFormData] = useState({
+        selectedProfiles: [],
+        start: '',
+        end: '',
+        timezone: 'UTC'
+    });
+
+    const [isOpen, setIsOpen] = useState(false);
+    const dropdownRef = React.useRef(null);
+    useEffect(() => {
+            const handleClickOutside = (event) => {
+                if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                    setIsOpen(false);
+                }
+            };
+    
+            document.addEventListener('mousedown', handleClickOutside);
+            return () => document.removeEventListener('mousedown', handleClickOutside);
+        }, []);
+
 
     const toggleProfile = (id) => {
+        // Prevent adding empty values if the dropdown sends them
+        if (!id) return;
+
         const updated = formData.selectedProfiles.includes(id)
             ? formData.selectedProfiles.filter(p => p !== id)
             : [...formData.selectedProfiles, id];
+
         setFormData({ ...formData, selectedProfiles: updated });
     };
 
     const handleCreate = async (e) => {
         e.preventDefault();
-        await axios.post('http://localhost:5000/api/events', {
-            title: formData.title,
-            profiles: formData.selectedProfiles,
-            startDateTime: new Date(formData.start).toISOString(),
-            endDateTime: new Date(formData.end).toISOString(),
-            timezone: formData.timezone
-        });
-        const res = await axios.get('http://localhost:5000/api/events');
-        dispatch(setEvents(res.data));
-        alert("Event Created!");
-        setFormData({ title: '', selectedProfiles: [], start: '', end: '', timezone: 'UTC' });
+
+        // Validation: Ensure at least one profile is selected
+        if (formData.selectedProfiles.length === 0) {
+            alert("Please select at least one profile");
+            return;
+        }
+
+        try {
+            await axios.post('http://localhost:5000/api/events', {
+                profiles: formData.selectedProfiles, // This is now an array of IDs
+                startDateTime: new Date(formData.start).toISOString(),
+                endDateTime: new Date(formData.end).toISOString(),
+                timezone: formData.timezone
+            });
+
+            const res = await axios.get('http://localhost:5000/api/events');
+            dispatch(setEvents(res.data));
+
+            alert("Event Created!");
+
+            // Reset form
+            setFormData({ title: 'New Event', selectedProfiles: [], start: '', end: '', timezone: 'UTC' });
+        } catch (err) {
+            alert("Error: " + (err.response?.data?.error || err.message));
+        }
     };
 
+    // Calculate placeholder for profiles dropdown
+    const profilePlaceholder = formData.selectedProfiles.length > 0
+        ? `${formData.selectedProfiles.length} profiles selected`
+        : "Select profiles...";
+
     return (
-        <form onSubmit={handleCreate}>
-            <div className="form-group">
-                <label className="form-label">Event Title</label>
-                <input
-                    type="text"
-                    placeholder="Enter event title"
-                    value={formData.title}
-                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    required
-                />
-            </div>
+        <form onSubmit={handleCreate} ref={dropdownRef}>
+           
 
             <div className="form-group">
                 <label className="form-label">Profiles</label>
                 <Dropdown
-                    placeholder="Select profiles..."
-                    value=""
-                    onChange={() => { }}
-                    options={[{ value: '', label: 'Select profiles...' }]}
+                    placeholder={profilePlaceholder}
+                    // We don't pass a single 'value' because it's multi-select
+                    onChange={toggleProfile}
+                    options={profiles.map(p => ({
+                        value: p._id,
+                        label: p.name,
+                        isSelected: formData.selectedProfiles.includes(p._id) // Custom prop for UI
+                    }))}
                 />
-                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '16px', marginTop: '12px' }}>
-                    {profiles.map(p => (
-                        <button
-                            key={p._id}
-                            type="button"
-                            onClick={() => toggleProfile(p._id)}
-                            style={{
-                                padding: '6px 12px',
-                                borderRadius: '6px',
-                                fontSize: '12px',
-                                cursor: 'pointer',
-                                border: formData.selectedProfiles.includes(p._id) ? '1px solid var(--primary)' : '1px solid var(--border)',
-                                background: formData.selectedProfiles.includes(p._id) ? 'var(--primary)' : 'white',
-                                color: formData.selectedProfiles.includes(p._id) ? 'white' : 'var(--text)',
-                                fontWeight: 600,
-                                transition: 'all 0.2s'
-                            }}
-                        >
-                            {p.name}
-                        </button>
-                    ))}
-                </div>
             </div>
 
             <div className="form-group">
@@ -84,8 +101,7 @@ const CreateEventForm = () => {
                     options={[
                         { value: 'UTC', label: 'UTC' },
                         { value: 'EST', label: 'Eastern Time (ET)' },
-                        { value: 'CST', label: 'Central Time (CT)' },
-                        { value: 'MST', label: 'Mountain Time (MT)' },
+                        { value: 'IST', label: 'India Standard Time (IST)' },
                         { value: 'PST', label: 'Pacific Time (PT)' }
                     ]}
                 />
