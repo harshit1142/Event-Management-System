@@ -43,7 +43,7 @@ router.put('/events/:id', async (req, res) => {
         const newProfileIds = [...profiles].sort();
 
         if (JSON.stringify(oldProfileIds) !== JSON.stringify(newProfileIds)) {
-            const updatedProfiles = await mongoose.model('Profile').find({ _id: { $in: profiles } });
+            const updatedProfiles = await mongoose.model('User').find({ _id: { $in: profiles } });
             const names = updatedProfiles.map(p => p.name).join(', ');
             changes.push(`Profile changed to: ${names}`);
         }
